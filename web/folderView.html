@@ -1,0 +1,994 @@
+<!doctype html>
+<meta charset="UTF-8" />
+<html>
+  <head>
+    <title>DigiSpot Files</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background: #f4f4f4;
+      }
+
+      h1 {
+        color: #333;
+        margin-bottom: 2px;
+      }
+
+      #greeting {
+        color: #777;
+        font-size: 14px;
+        margin: 0 0 16px;
+      }
+
+      #files {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: flex-start;
+      }
+
+      .file {
+        width: 220px;
+        background: white;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 2px 5px #ccc;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        transition: transform 0.15s;
+      }
+
+      .file:hover {
+        transform: translateY(-2px);
+      }
+
+      .thumb {
+        width: 180px;
+        height: 180px;
+
+        object-fit: cover;
+
+        border-radius: 8px;
+
+        cursor: pointer;
+
+        background: #eee;
+      }
+
+      .file button {
+        width: 180px;
+        margin-bottom: 10px;
+      }
+
+      .file a {
+        margin-top: auto;
+      }
+
+      .name {
+        margin-top: 10px;
+        text-align: center;
+        font-weight: bold;
+
+        width: 100%;
+
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .info {
+        margin-top: 6px;
+        text-align: center;
+        font-size: 13px;
+      }
+
+      .name {
+        font-weight: bold;
+      }
+
+      .info {
+        color: #666;
+        font-size: 14px;
+      }
+
+      #status {
+        color: #777;
+      }
+
+      #breadcrumb {
+        margin-bottom: 12px;
+        font-size: 14px;
+        color: #555;
+      }
+
+      #breadcrumb a {
+        color: #2a6fdb;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      .toolbar {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .toolbar button {
+        padding: 8px 14px;
+        font-size: 14px;
+        cursor: pointer;
+        background: #0078d4;
+        color: white;
+        border: none;
+        border-radius: 6px;
+      }
+
+      .toolbar button:hover {
+        background: #005ea6;
+      }
+
+      .toolbar button:disabled {
+        background: #9ab8d6;
+        cursor: default;
+      }
+
+      .new-folder-form {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .new-folder-form input {
+        padding: 8px 10px;
+        font-size: 14px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+      }
+
+      .new-folder-form button {
+        padding: 8px 14px;
+        font-size: 14px;
+        cursor: pointer;
+        border: none;
+        border-radius: 6px;
+        background: #eee;
+      }
+
+      .new-folder-form button:first-of-type {
+        background: #0078d4;
+        color: white;
+      }
+
+      #uploadStatus {
+        color: #555;
+        font-size: 13px;
+      }
+
+      .author {
+        color: #999;
+        font-size: 12px;
+      }
+
+      .folder {
+        width: 220px;
+        background: #fffbe8;
+        border-radius: 10px;
+        padding: 12px;
+        box-shadow: 0 2px 5px #ccc;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        cursor: pointer;
+        transition: transform 0.15s;
+
+        position: relative;
+      }
+
+      .folder:hover {
+        transform: translateY(-2px);
+      }
+
+      .folder.locked {
+        background: #fff6e6;
+        box-shadow: 0 2px 5px #e6c98c;
+      }
+
+      .folder .icon {
+        font-size: 48px;
+      }
+
+      .lock-badge {
+        position: absolute;
+        top: 8px;
+        right: 10px;
+        font-size: 16px;
+      }
+
+      .icon-big {
+        width: 180px;
+        height: 180px;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        font-size: 64px;
+
+        border-radius: 8px;
+        background: #eee;
+
+        cursor: pointer;
+      }
+
+      .viewer {
+        position: fixed;
+
+        inset: 0;
+
+        background: rgba(0, 0, 0, 0.7);
+
+        display: none;
+
+        justify-content: center;
+
+        align-items: center;
+      }
+
+      .window {
+        background: white;
+
+        padding: 20px;
+
+        border-radius: 10px;
+
+        width: 80%;
+
+        height: 80%;
+      }
+
+      .window img {
+        max-width: 100%;
+
+        max-height: 100%;
+      }
+
+      .window iframe {
+        width: 100%;
+
+        height: 90%;
+
+        border: none;
+      }
+
+      /* -------------------- locked-folder state -------------------- */
+
+      .lock-screen {
+        width: 100%;
+        max-width: 360px;
+        background: white;
+        border-radius: 10px;
+        padding: 24px;
+        box-shadow: 0 2px 5px #ccc;
+        text-align: center;
+      }
+
+      .lock-screen .icon {
+        font-size: 40px;
+        margin-bottom: 6px;
+      }
+
+      .lock-screen h3 {
+        margin: 0 0 4px;
+        color: #333;
+      }
+
+      .lock-screen p {
+        margin: 0 0 16px;
+        color: #777;
+        font-size: 13px;
+      }
+
+      .lock-screen input {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        box-sizing: border-box;
+        margin-bottom: 10px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+      }
+
+      .lock-screen .error {
+        color: #c0392b;
+        font-size: 13px;
+        margin: -4px 0 10px;
+        min-height: 16px;
+      }
+
+      .lock-screen button {
+        width: 100%;
+        padding: 10px;
+        font-size: 15px;
+        cursor: pointer;
+        background: #0078d4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        margin-bottom: 8px;
+      }
+
+      .lock-screen button:hover {
+        background: #005ea6;
+      }
+
+      .lock-screen .back-link {
+        display: inline-block;
+        margin-top: 4px;
+        font-size: 13px;
+        color: #2a6fdb;
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      .lock-screen .back-link:hover {
+        text-decoration: underline;
+      }
+
+      /* Right-side client panel */
+
+      #clientPanel {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        width: 260px;
+
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+
+        padding: 16px;
+        z-index: 999;
+      }
+
+      #clientPanel h3 {
+        margin: 0 0 12px;
+        color: #333;
+      }
+
+      .client-card {
+        padding: 10px;
+        border-radius: 8px;
+        background: #f7f7f7;
+        margin-bottom: 8px;
+        border-left: 4px solid #0078d4;
+      }
+
+      .client-name {
+        font-weight: bold;
+      }
+
+      .client-ip {
+        font-size: 12px;
+        color: #666;
+      }
+
+      .client-device {
+        font-size: 12px;
+        color: #888;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>DigiSpot Files</h1>
+    <p id="greeting" style="display: none"></p>
+
+    <div id="breadcrumb"></div>
+
+    <div id="toolbar" class="toolbar" style="display: none">
+      <button onclick="showNewFolderForm()">+ New folder</button>
+      <button onclick="triggerUpload()">+ Upload files</button>
+      <input
+        type="file"
+        id="uploadInput"
+        multiple
+        style="display: none"
+        onchange="handleUploadInputChange(event)"
+      />
+    </div>
+    <div id="newFolderForm" class="new-folder-form" style="display: none">
+      <input
+        type="text"
+        id="newFolderInput"
+        placeholder="Folder name"
+        autocomplete="off"
+      />
+      <button onclick="submitNewFolder()">Create</button>
+      <button onclick="hideNewFolderForm()">Cancel</button>
+    </div>
+    <div id="clientPanel" style="display: none">
+      <h3>Connected Clients</h3>
+      <div id="clientList">
+        <p>No clients available.</p>
+      </div>
+    </div>
+    <p id="uploadStatus" style="display: none"></p>
+
+    <p id="status">Loading files...</p>
+
+    <div id="files"></div>
+
+    <script>
+      // Icon is now derived from the file extension rather than a stored
+      // mimeType — the /api/files response no longer carries one, since
+      // these are just real files on disk (see iconForFile in
+      // FolderExplorer.jsx for the app-side equivalent).
+      const EXT_ICON = {
+        png: "🖼️",
+        jpg: "🖼️",
+        jpeg: "🖼️",
+        gif: "🖼️",
+        webp: "🖼️",
+        mp4: "🎞️",
+        webm: "🎞️",
+        mp3: "🎵",
+        wav: "🎵",
+        ogg: "🎵",
+        pdf: "📕",
+        zip: "🗜️",
+      };
+
+      function extOf(name) {
+        return (name.split(".").pop() || "").toLowerCase();
+      }
+
+      function iconForFile(name) {
+        return EXT_ICON[extOf(name)] || "📄";
+      }
+
+      function formatBytes(size) {
+        if (size === undefined || size === null) return "";
+        if (size < 1024) return `${size} B`;
+        if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+        return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+      }
+
+      function openPreview(url, type) {
+        const viewer = document.getElementById("viewer");
+
+        const content = document.getElementById("content");
+
+        const download = document.getElementById("downloadBtn");
+
+        viewer.style.display = "flex";
+
+        download.href = url;
+
+        content.innerHTML = "";
+
+        if (type === "image") {
+          content.innerHTML = `<img src="${url}">`;
+        } else if (type === "audio") {
+          content.innerHTML = `
+            <audio controls autoplay src="${url}"></audio>
+        `;
+        } else if (type === "video") {
+          content.innerHTML = `
+            <video controls autoplay src="${url}" style="width:100%"></video>
+        `;
+        } else if (type === "pdf") {
+          content.innerHTML = `
+            <iframe src="${url}"></iframe>
+        `;
+        }
+      }
+
+      function closeViewer() {
+        document.getElementById("viewer").style.display = "none";
+      }
+
+      function downloadFile(url) {
+        const a = document.createElement("a");
+
+        a.href = url;
+
+        a.download = "";
+
+        a.click();
+      }
+
+      // ---------------------------------------------------------------
+      // Passcode / root folder
+      // ---------------------------------------------------------------
+      // This page only ever exists at a URL like /folder?password=123,
+      // and server.js's /folder route already refuses to serve the page
+      // at all unless that password matches some folder's passcode (see
+      // findFolderByPasscode in server.js). So there's exactly one
+      // "root" for this whole session: the folder that password
+      // unlocks. We never browse the DigiSpot root itself, never learn
+      // about sibling folders, and never navigate above this root —
+      // `currentPath` below is always relative to it, and every request
+      // re-sends `password` so /api/files can re-resolve + re-scope to
+      // that same folder (see the `password`/`subpath` handling in
+      // server.js's /api/files route).
+      const pageParams = new URLSearchParams(window.location.search);
+      const guestName = pageParams.get("Name") || pageParams.get("name") || "";
+      let password =
+        pageParams.get("Password") || pageParams.get("password") || "";
+
+      if (guestName) {
+        const greeting = document.getElementById("greeting");
+        greeting.textContent = `Hi, ${guestName}`;
+        greeting.style.display = "block";
+      }
+
+      // Name of the root folder itself (the one `password` unlocks),
+      // filled in from the server's response once we've loaded it —
+      // used to label the root breadcrumb instead of a generic "Root".
+      let rootFolderName = null;
+
+      // currentPath is always relative to the unlocked root folder, e.g.
+      // [] for the root itself, or ["2024"] for a subfolder of it. This
+      // is sent to the server as `subpath`, never as an absolute `path`
+      // — that keeps browsing confined to whatever `password` unlocked.
+      let currentPath = [];
+
+      // Nothing beyond the lock screen itself — no client list, no
+      // breadcrumb, no listing — should render or fetch until the server
+      // has actually confirmed the password against a real folder via
+      // /api/files. `unlocked` flips true on the first successful
+      // listing; `clientsIntervalId` lets us start/stop the client-list
+      // poll in step with that, instead of it running unconditionally
+      // from page load regardless of whether anyone's authenticated.
+      let unlocked = false;
+      let clientsIntervalId = null;
+
+      function revealUnlockedChrome() {
+        if (unlocked) return;
+        unlocked = true;
+        document.getElementById("clientPanel").style.display = "block";
+        loadClients();
+        if (!clientsIntervalId) {
+          clientsIntervalId = setInterval(loadClients, 2000);
+        }
+      }
+
+      function lockUI() {
+        unlocked = false;
+        document.getElementById("toolbar").style.display = "none";
+        document.getElementById("clientPanel").style.display = "none";
+        if (clientsIntervalId) {
+          clearInterval(clientsIntervalId);
+          clientsIntervalId = null;
+        }
+        hideNewFolderForm();
+      }
+
+      function navigateTo(name) {
+        hideNewFolderForm();
+        currentPath.push(name);
+        loadFiles();
+      }
+
+      function navigateToCrumb(index) {
+        // index === -1 means "the unlocked root folder", not the
+        // DigiSpot root — there is no way to go any higher than that
+        // from this page.
+        hideNewFolderForm();
+        currentPath = index === -1 ? [] : currentPath.slice(0, index + 1);
+        loadFiles();
+      }
+
+      function renderBreadcrumb() {
+        const breadcrumb = document.getElementById("breadcrumb");
+        const rootLabel = rootFolderName || "Root";
+        const crumbs = [`<a onclick="navigateToCrumb(-1)">${rootLabel}</a>`];
+        currentPath.forEach((name, i) => {
+          crumbs.push(`<a onclick="navigateToCrumb(${i})">${name}</a>`);
+        });
+        breadcrumb.innerHTML = crumbs.join(" / ");
+      }
+
+      // Always sends `password` (so the server can re-resolve which
+      // folder we're scoped to) plus `subpath` for how far we've
+      // navigated into it — matching server.js's /api/files exactly.
+      async function fetchListing(subpathSegments) {
+        const params = new URLSearchParams();
+        if (password) params.set("password", password);
+        if (subpathSegments.length)
+          params.set("subpath", subpathSegments.join("/"));
+        const qs = params.toString();
+        const response = await fetch(`/api/files${qs ? "?" + qs : ""}`);
+        let data = null;
+        try {
+          data = await response.json();
+        } catch {
+          // non-JSON error body — data stays null, handled below
+        }
+        return { response, data };
+      }
+
+      async function loadFiles() {
+        renderBreadcrumb();
+
+        const status = document.getElementById("status");
+        if (status) {
+          status.style.display = "block";
+          status.textContent = "Loading files...";
+        }
+        document.getElementById("files").innerHTML = "";
+
+        const requestedPath = currentPath.slice();
+        const { response, data } = await fetchListing(requestedPath);
+
+        // The person may have navigated again while this was in flight —
+        // don't render a stale response over the current view.
+        if (requestedPath.join("/") !== currentPath.join("/")) return;
+
+        if (response.status === 403) {
+          // The passcode we have is missing or no longer matches any
+          // folder — ask for it again rather than silently failing.
+          lockUI();
+          renderLockScreen(!!password);
+          return;
+        }
+
+        if (!response.ok) {
+          document.getElementById("toolbar").style.display = "none";
+          showError(
+            (data && data.error) || `Failed to load files (${response.status})`,
+          );
+          return;
+        }
+
+        // data.path is the full absolute path of the folder we just
+        // listed (e.g. "Photos/2024"). The first
+        // (data.path.split("/").length - currentPath.length) segments
+        // of that are the unlocked root's own path — its last segment
+        // is the root folder's real name, for the breadcrumb.
+        const fullSegments = ((data && data.path) || "")
+          .split("/")
+          .filter(Boolean);
+        const rootLen = fullSegments.length - currentPath.length;
+        if (rootLen > 0) rootFolderName = fullSegments[rootLen - 1];
+
+        if (status) status.style.display = "none";
+        renderBreadcrumb();
+        document.getElementById("toolbar").style.display = "flex";
+        renderListing(data || { folders: [], files: [] });
+        revealUnlockedChrome();
+      }
+
+      function showError(message) {
+        const status = document.getElementById("status");
+        if (status) {
+          status.style.display = "block";
+          status.textContent = "Error: " + message;
+        }
+      }
+
+      function renderLockScreen(wasWrongAttempt) {
+        const container = document.getElementById("files");
+        const status = document.getElementById("status");
+        if (status) status.style.display = "none";
+
+        container.innerHTML = `
+          <div class="lock-screen">
+            <div class="icon">🔒</div>
+            <h3>Enter passcode</h3>
+            <p>Enter the passcode to open this folder.</p>
+            <input
+              type="password"
+              id="lockPasscodeInput"
+              placeholder="Passcode"
+              autocomplete="off"
+            />
+            <div class="error">${wasWrongAttempt ? "Wrong passcode. Try again." : ""}</div>
+            <button onclick="submitLockScreen()">Unlock</button>
+          </div>
+        `;
+
+        const input = document.getElementById("lockPasscodeInput");
+        input.focus();
+        input.addEventListener("keydown", (e) => {
+          if (e.key === "Enter") submitLockScreen();
+        });
+      }
+
+      function submitLockScreen() {
+        const input = document.getElementById("lockPasscodeInput");
+        password = input ? input.value : "";
+        // A fresh passcode might unlock a *different* folder than
+        // before, so start back at that folder's own root rather than
+        // wherever we happened to be browsing.
+        currentPath = [];
+        loadFiles();
+      }
+
+      function renderListing(data) {
+        const container = document.getElementById("files");
+        const folders = data.folders || [];
+        const files = data.files || [];
+
+        container.innerHTML = "";
+
+        if (folders.length === 0 && files.length === 0) {
+          container.innerHTML = "<p>No folders or files here.</p>";
+          return;
+        }
+
+        folders.forEach((folder) => {
+          const div = document.createElement("div");
+          div.className = "folder";
+          div.onclick = () => navigateTo(folder.name);
+          div.innerHTML = `
+            <div class="icon">📁</div>
+            <div class="name">${folder.name}</div>
+            ${folder.author ? `<div class="author">by ${folder.author}</div>` : ""}
+          `;
+          container.appendChild(div);
+        });
+
+        const imageExt = ["png", "jpg", "jpeg", "gif", "webp"];
+        const audioExt = ["mp3", "wav", "ogg"];
+        const videoExt = ["mp4", "webm"];
+
+        files.forEach((file) => {
+          const ext = extOf(file.name);
+          const icon = iconForFile(file.name);
+
+          const div = document.createElement("div");
+
+          div.className = "file";
+
+          let preview = "";
+
+          if (imageExt.includes(ext)) {
+            preview = `
+            <img
+                src="${file.downloadUrl}"
+                class="thumb"
+                onclick="openPreview('${file.downloadUrl}','image')"
+            >
+        `;
+          } else if (audioExt.includes(ext)) {
+            preview = `
+            <div class="icon-big" onclick="openPreview('${file.downloadUrl}','audio')">${icon}</div>
+            <button onclick="openPreview('${file.downloadUrl}','audio')">
+                ${icon} Play
+            </button>
+        `;
+          } else if (videoExt.includes(ext)) {
+            preview = `
+            <div class="icon-big" onclick="openPreview('${file.downloadUrl}','video')">${icon}</div>
+            <button onclick="openPreview('${file.downloadUrl}','video')">
+                ${icon} Watch
+            </button>
+        `;
+          } else if (ext === "pdf") {
+            preview = `
+            <div class="icon-big" onclick="openPreview('${file.downloadUrl}','pdf')">${icon}</div>
+            <button onclick="openPreview('${file.downloadUrl}','pdf')">
+                ${icon} Open PDF
+            </button>
+        `;
+          } else {
+            preview = `
+            <div class="icon-big" onclick="downloadFile('${file.downloadUrl}')">${icon}</div>
+            <button onclick="downloadFile('${file.downloadUrl}')">
+                ⬇ Download
+            </button>
+        `;
+          }
+
+          const infoBits = [formatBytes(file.size)].filter(Boolean);
+
+          div.innerHTML = `
+        ${preview}
+
+        <div class="name">${file.name}</div>
+
+        ${infoBits.length ? `<div class="info">${infoBits.join(" · ")}</div>` : ""}
+        ${file.author ? `<div class="author">by ${file.author}</div>` : ""}
+
+        <a href="${file.downloadUrl}" download>
+            Download
+        </a>
+    `;
+
+          container.appendChild(div);
+        });
+      }
+
+      // ---------------------------------------------------------------
+      // New folder / upload
+      // ---------------------------------------------------------------
+      // Both actions re-send `password` (same as every /api/files call)
+      // so the server re-resolves and re-scopes to the same unlocked
+      // folder — there's no separate "am I still allowed here" check.
+      // `guestName` (from ?name=) is what gets recorded as the author;
+      // if the person didn't set one, entries are attributed to "Guest".
+
+      function showNewFolderForm() {
+        document.getElementById("newFolderForm").style.display = "flex";
+        const input = document.getElementById("newFolderInput");
+        input.value = "";
+        input.focus();
+        input.onkeydown = (e) => {
+          if (e.key === "Enter") submitNewFolder();
+        };
+      }
+
+      function hideNewFolderForm() {
+        document.getElementById("newFolderForm").style.display = "none";
+      }
+
+      async function submitNewFolder() {
+        const input = document.getElementById("newFolderInput");
+        const name = (input && input.value ? input.value : "").trim();
+        if (!name) return;
+
+        try {
+          const response = await fetch("/api/folder", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              password,
+              subpath: currentPath.join("/"),
+              name,
+              author: guestName,
+            }),
+          });
+          const data = await response.json().catch(() => null);
+
+          if (response.status === 403) {
+            hideNewFolderForm();
+            renderLockScreen(true);
+            return;
+          }
+          if (!response.ok) {
+            showError((data && data.error) || "Failed to create folder");
+            return;
+          }
+
+          hideNewFolderForm();
+          loadFiles();
+        } catch (err) {
+          showError("Failed to create folder: " + err.message);
+        }
+      }
+
+      function triggerUpload() {
+        document.getElementById("uploadInput").click();
+      }
+
+      // Reads a File as base64 (stripping the "data:...;base64," prefix
+      // FileReader includes) so it can travel as plain JSON — there's no
+      // multipart/form-data parsing on the server side to lean on here.
+      function readFileAsBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(",").pop());
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      async function uploadOneFile(file) {
+        const dataBase64 = await readFileAsBase64(file);
+        const response = await fetch("/api/upload", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            password,
+            subpath: currentPath.join("/"),
+            name: file.name,
+            dataBase64,
+            author: guestName,
+          }),
+        });
+        const data = await response.json().catch(() => null);
+        return { response, data };
+      }
+
+      async function handleUploadInputChange(event) {
+        const files = Array.from(event.target.files || []);
+        event.target.value = ""; // allow re-picking the same file later
+        if (!files.length) return;
+
+        const uploadStatus = document.getElementById("uploadStatus");
+        uploadStatus.style.display = "block";
+
+        const failed = [];
+        for (let i = 0; i < files.length; i++) {
+          uploadStatus.textContent = `Uploading ${i + 1} of ${files.length}: ${files[i].name}`;
+          try {
+            const { response, data } = await uploadOneFile(files[i]);
+            if (response.status === 403) {
+              uploadStatus.style.display = "none";
+              renderLockScreen(true);
+              return;
+            }
+            if (!response.ok) {
+              failed.push(
+                `${files[i].name}: ${(data && data.error) || response.status}`,
+              );
+            }
+          } catch (err) {
+            failed.push(`${files[i].name}: ${err.message}`);
+          }
+        }
+
+        uploadStatus.style.display = "none";
+        if (failed.length)
+          showError("Some files failed to upload:\n" + failed.join("\n"));
+        loadFiles();
+      }
+
+      async function loadClients() {
+        try {
+          const response = await fetch("/api/clientList");
+          const clients = await response.json();
+
+          const container = document.getElementById("clientList");
+
+          if (!Array.isArray(clients) || clients.length === 0) {
+            container.innerHTML = "<p>No clients available.</p>";
+            return;
+          }
+
+          container.innerHTML = clients
+            .map(
+              (client) => `
+        <div class="client-card">
+          <div class="client-name">${client.name || "Unknown"}</div>
+          ${client.ip ? `<div class="client-ip">${client.ip}</div>` : ""}
+          ${
+            client.device
+              ? `<div class="client-device">${client.device}</div>`
+              : ""
+          }
+        </div>
+      `,
+            )
+            .join("");
+        } catch (err) {
+          document.getElementById("clientList").innerHTML =
+            "<p>Unable to load clients.</p>";
+        }
+      }
+
+      // Nothing fetches or renders beyond the lock screen until loadFiles()
+      // gets back a real 200 from the server (see revealUnlockedChrome()
+      // above) — a `password` being present in the URL only means we'll
+      // attempt it, not that it's valid.
+      if (!password) {
+        renderLockScreen(false);
+      } else {
+        loadFiles();
+      }
+    </script>
+
+    <div id="viewer" class="viewer">
+      <div class="window">
+        <button onclick="closeViewer()">Close</button>
+
+        <a id="downloadBtn" download> Download </a>
+
+        <div id="content"></div>
+      </div>
+    </div>
+  </body>
+</html>

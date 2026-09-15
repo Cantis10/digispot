@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enter Your Name</title>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 300px;
+      }
+
+      h2 {
+        margin-top: 0;
+      }
+
+      input {
+        width: 100%;
+        padding: 10px;
+        margin: 15px 0;
+        box-sizing: border-box;
+        font-size: 16px;
+      }
+
+      button {
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+        background: #0078d4;
+        color: white;
+        border: none;
+        border-radius: 5px;
+      }
+
+      button:hover {
+        background: #005ea6;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <h2>Enter Your Name</h2>
+
+      <input type="text" id="name" placeholder="Your name" autocomplete="off" />
+      <input type="text" id="password" placeholder="spot code" />
+      <button onclick="goToFolder()">Submit</button>
+    </div>
+
+    <script>
+      // Read password from the current URL, if present
+      const urlParams = new URLSearchParams(window.location.search);
+      const queryPassword = urlParams.get("password");
+
+      const passwordInput = document.getElementById("password");
+
+      if (queryPassword !== null) {
+        passwordInput.value = queryPassword;
+        passwordInput.disabled = true;
+      }
+
+      function goToFolder() {
+        const name = document.getElementById("name").value.trim();
+
+        // Use the query password if present, otherwise use the input field
+        const password =
+          queryPassword !== null ? queryPassword : passwordInput.value.trim();
+
+        if (!name) {
+          alert("Please enter your name.");
+          return;
+        }
+
+        const params = new URLSearchParams({
+          name,
+          password,
+        });
+
+        window.location.href = "/folder?" + params.toString();
+      }
+
+      // Submit with Enter key
+      document.getElementById("name").addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          goToFolder();
+        }
+      });
+    </script>
+  </body>
+</html>
