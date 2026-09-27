@@ -1,26 +1,238 @@
 <!doctype html>
-<meta charset="UTF-8" />
-<html>
+<html lang="en">
   <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>DigiSpot Files</title>
 
     <style>
+      /* =========================================
+         DIGISPOT SHARED DESIGN TOKENS
+         (mirrors Homepage.html / style.css)
+      ========================================= */
+
+      :root {
+        --brand-blue: #5dbbff;
+        --accent-blue: #55b8ff;
+        --accent-blue-hover: #3da8f3;
+        --selected-blue: #d9edff;
+        --folder-blue: #eaf6ff;
+        --folder-blue-border: #cdeaff;
+        --yellow: #fff34f;
+        --green: #48ff3c;
+        --red: #ff3838;
+        --page-bg: #e0e0e0;
+        --card-border: #aaa;
+        --text-dark: #333;
+        --text-muted: #777;
+        --text-mutedmore: #999;
+        --link-blue: #1f93e0;
+        --radius-card: 17px;
+        --radius-item: 14px;
+        --radius-btn: 8px;
+        --radius-input: 10px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
       body {
-        font-family: Arial, sans-serif;
-        padding: 20px;
-        background: #f4f4f4;
+        margin: 0;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: var(--page-bg);
+        color: var(--text-dark);
+      }
+
+      /* =========================================
+         NAVIGATION BAR
+      ========================================= */
+
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        background-color: var(--brand-blue);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      #Text_Logo {
+        font-size: 28px;
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        padding: 10px 24px;
+      }
+
+      /* =========================================
+         PAGE / FOLDER MANAGER LAYOUT
+      ========================================= */
+
+      .folder-manager {
+        min-height: 100vh;
+        padding: 100px 20px 40px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .folder-box {
+        width: min(1000px, 100%);
+        height: fit-content;
+        background-color: white;
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius-card);
+        box-shadow: 0 5px 5px rgba(0, 0, 0, 0.35);
+        padding: 26px 28px 30px;
       }
 
       h1 {
-        color: #333;
-        margin-bottom: 2px;
+        color: var(--text-dark);
+        font-size: 26px;
+        margin: 0 0 2px;
       }
 
       #greeting {
-        color: #777;
+        color: var(--text-muted);
         font-size: 14px;
         margin: 0 0 16px;
       }
+
+      /* =========================================
+         BREADCRUMB
+      ========================================= */
+
+      #breadcrumb {
+        margin-bottom: 18px;
+        font-size: 14px;
+        color: #555;
+      }
+
+      #breadcrumb a {
+        color: var(--link-blue);
+        text-decoration: none;
+        cursor: pointer;
+      }
+
+      #breadcrumb a:hover {
+        text-decoration: underline;
+      }
+
+      /* =========================================
+         TOOLBAR
+      ========================================= */
+
+      .toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 16px;
+      }
+
+      .toolbar button {
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        background: var(--yellow);
+        color: var(--text-dark);
+        border: none;
+        border-radius: var(--radius-btn);
+        transition: opacity 0.15s ease;
+      }
+
+      .toolbar button:nth-of-type(2) {
+        background: var(--green);
+      }
+
+      .toolbar button:hover {
+        opacity: 0.8;
+      }
+
+      .toolbar button:disabled {
+        background: #eee;
+        color: var(--text-mutedmore);
+        cursor: default;
+        opacity: 1;
+      }
+
+      /* =========================================
+         NEW FOLDER FORM
+      ========================================= */
+
+      .new-folder-form {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+
+      .new-folder-form input {
+        padding: 9px 12px;
+        font-size: 14px;
+        min-width: 180px;
+        border: none;
+        border-radius: var(--radius-input);
+        background: #f6f6f6;
+        color: var(--text-dark);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .new-folder-form input:focus {
+        outline: none;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(85, 184, 255, 0.35);
+      }
+
+      .new-folder-form button {
+        padding: 8px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        border-radius: var(--radius-btn);
+        background: #eee;
+        color: var(--text-dark);
+      }
+
+      .new-folder-form button:first-of-type {
+        background: var(--accent-blue);
+        color: white;
+      }
+
+      .new-folder-form button:first-of-type:hover {
+        background: var(--accent-blue-hover);
+      }
+
+      .new-folder-form button:hover {
+        opacity: 0.85;
+      }
+
+      #uploadStatus {
+        color: #555;
+        font-size: 13px;
+        margin: 4px 0 12px;
+      }
+
+      .author {
+        color: var(--text-mutedmore);
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      #status {
+        color: var(--text-muted);
+      }
+
+      /* =========================================
+         FILE / FOLDER GRID
+      ========================================= */
 
       #files {
         display: flex;
@@ -32,19 +244,23 @@
       .file {
         width: 220px;
         background: white;
-        border-radius: 10px;
-        padding: 12px;
-        box-shadow: 0 2px 5px #ccc;
+        border: 1px solid #e2e2e2;
+        border-radius: var(--radius-item);
+        padding: 14px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 
         display: flex;
         flex-direction: column;
         align-items: center;
 
-        transition: transform 0.15s;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
       }
 
       .file:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
       }
 
       .thumb {
@@ -53,137 +269,74 @@
 
         object-fit: cover;
 
-        border-radius: 8px;
+        border-radius: 10px;
 
         cursor: pointer;
 
-        background: #eee;
+        background: var(--folder-blue);
       }
 
       .file button {
         width: 180px;
         margin-bottom: 10px;
+
+        padding: 8px 0;
+        border: none;
+        border-radius: var(--radius-btn);
+        background: var(--accent-blue);
+        color: white;
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .file button:hover {
+        background: var(--accent-blue-hover);
       }
 
       .file a {
         margin-top: auto;
+        color: var(--link-blue);
+        font-size: 13px;
+        text-decoration: none;
+      }
+
+      .file a:hover {
+        text-decoration: underline;
       }
 
       .name {
         margin-top: 10px;
         text-align: center;
-        font-weight: bold;
+        font-weight: 600;
 
         width: 100%;
 
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+
+        color: var(--text-dark);
       }
 
       .info {
-        margin-top: 6px;
+        margin-top: 4px;
         text-align: center;
         font-size: 13px;
+        color: var(--text-muted);
       }
 
-      .name {
-        font-weight: bold;
-      }
-
-      .info {
-        color: #666;
-        font-size: 14px;
-      }
-
-      #status {
-        color: #777;
-      }
-
-      #breadcrumb {
-        margin-bottom: 12px;
-        font-size: 14px;
-        color: #555;
-      }
-
-      #breadcrumb a {
-        color: #2a6fdb;
-        text-decoration: none;
-        cursor: pointer;
-      }
-
-      #breadcrumb a:hover {
-        text-decoration: underline;
-      }
-
-      .toolbar {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 16px;
-      }
-
-      .toolbar button {
-        padding: 8px 14px;
-        font-size: 14px;
-        cursor: pointer;
-        background: #0078d4;
-        color: white;
-        border: none;
-        border-radius: 6px;
-      }
-
-      .toolbar button:hover {
-        background: #005ea6;
-      }
-
-      .toolbar button:disabled {
-        background: #9ab8d6;
-        cursor: default;
-      }
-
-      .new-folder-form {
-        display: flex;
-        gap: 8px;
-        margin-bottom: 16px;
-      }
-
-      .new-folder-form input {
-        padding: 8px 10px;
-        font-size: 14px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-      }
-
-      .new-folder-form button {
-        padding: 8px 14px;
-        font-size: 14px;
-        cursor: pointer;
-        border: none;
-        border-radius: 6px;
-        background: #eee;
-      }
-
-      .new-folder-form button:first-of-type {
-        background: #0078d4;
-        color: white;
-      }
-
-      #uploadStatus {
-        color: #555;
-        font-size: 13px;
-      }
-
-      .author {
-        color: #999;
-        font-size: 12px;
-      }
+      /* =========================================
+         FOLDER CARD
+      ========================================= */
 
       .folder {
         width: 220px;
-        background: #fffbe8;
-        border-radius: 10px;
-        padding: 12px;
-        box-shadow: 0 2px 5px #ccc;
+        min-height: 140px;
+        background: var(--folder-blue);
+        border: 1px solid var(--folder-blue-border);
+        border-radius: var(--radius-item);
+        padding: 16px;
+        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.12);
 
         display: flex;
         flex-direction: column;
@@ -191,18 +344,22 @@
         justify-content: center;
 
         cursor: pointer;
-        transition: transform 0.15s;
+        transition:
+          transform 0.15s ease,
+          box-shadow 0.15s ease;
 
         position: relative;
       }
 
       .folder:hover {
-        transform: translateY(-2px);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 14px rgba(0, 0, 0, 0.18);
       }
 
       .folder.locked {
-        background: #fff6e6;
-        box-shadow: 0 2px 5px #e6c98c;
+        background: #fff8e6;
+        border: 1px solid #f0d999;
+        box-shadow: 0 3px 8px rgba(230, 201, 140, 0.4);
       }
 
       .folder .icon {
@@ -226,88 +383,158 @@
 
         font-size: 64px;
 
-        border-radius: 8px;
-        background: #eee;
+        border-radius: 10px;
+        background: var(--folder-blue);
 
         cursor: pointer;
       }
+
+      /* =========================================
+         PREVIEW / VIEWER MODAL
+      ========================================= */
 
       .viewer {
         position: fixed;
 
         inset: 0;
 
-        background: rgba(0, 0, 0, 0.7);
+        background-color: rgba(0, 0, 0, 0.45);
 
         display: none;
 
         justify-content: center;
 
         align-items: center;
+
+        z-index: 1500;
+
+        padding: 15px;
       }
 
       .window {
         background: white;
 
-        padding: 20px;
+        padding: 20px 24px 24px;
 
-        border-radius: 10px;
+        border-radius: 20px;
 
         width: 80%;
+        max-width: 900px;
 
         height: 80%;
+
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+
+        position: relative;
+
+        overflow: auto;
+      }
+
+      .window button {
+        border: none;
+        background: var(--red);
+        color: white;
+        padding: 6px 14px;
+        border-radius: var(--radius-btn);
+        font-size: 13px;
+        cursor: pointer;
+      }
+
+      .window button:hover {
+        opacity: 0.85;
+      }
+
+      #downloadBtn {
+        display: inline-block;
+        margin-left: 10px;
+        background: var(--accent-blue);
+        color: white;
+        text-decoration: none;
+        padding: 6px 16px;
+        border-radius: var(--radius-btn);
+        font-size: 13px;
+        vertical-align: middle;
+      }
+
+      #downloadBtn:hover {
+        background: var(--accent-blue-hover);
+      }
+
+      #content {
+        margin-top: 16px;
+        height: calc(100% - 46px);
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        overflow: auto;
       }
 
       .window img {
         max-width: 100%;
 
         max-height: 100%;
+
+        border-radius: 10px;
       }
 
       .window iframe {
         width: 100%;
 
-        height: 90%;
+        height: 100%;
 
         border: none;
+
+        border-radius: 10px;
       }
 
       /* -------------------- locked-folder state -------------------- */
 
       .lock-screen {
         width: 100%;
-        max-width: 360px;
+        max-width: 380px;
+        margin: 40px auto;
         background: white;
-        border-radius: 10px;
-        padding: 24px;
-        box-shadow: 0 2px 5px #ccc;
+        border-radius: 20px;
+        padding: 32px 28px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
         text-align: center;
       }
 
       .lock-screen .icon {
-        font-size: 40px;
-        margin-bottom: 6px;
+        font-size: 42px;
+        margin-bottom: 8px;
       }
 
       .lock-screen h3 {
         margin: 0 0 4px;
-        color: #333;
+        color: var(--text-dark);
+        font-size: 20px;
       }
 
       .lock-screen p {
-        margin: 0 0 16px;
-        color: #777;
+        margin: 0 0 18px;
+        color: var(--text-muted);
         font-size: 13px;
       }
 
       .lock-screen input {
         width: 100%;
-        padding: 10px;
-        font-size: 16px;
+        padding: 11px 14px;
+        font-size: 15px;
         box-sizing: border-box;
-        margin-bottom: 10px;
-        border: 1px solid #ddd;
-        border-radius: 5px;
+        margin-bottom: 12px;
+        border: none;
+        border-radius: var(--radius-input);
+        background: #f6f6f6;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      .lock-screen input:focus {
+        outline: none;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(85, 184, 255, 0.35);
       }
 
       .lock-screen .error {
@@ -319,25 +546,45 @@
 
       .lock-screen button {
         width: 100%;
-        padding: 10px;
+        padding: 11px;
         font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
-        background: #0078d4;
+        background: var(--accent-blue);
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: var(--radius-input);
         margin-bottom: 8px;
       }
 
       .lock-screen button:hover {
-        background: #005ea6;
+        background: var(--accent-blue-hover);
+      }
+
+      .passcode-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 1200;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        background: rgba(0, 0, 0, 0.55);
+      }
+
+      .passcode-modal .lock-screen {
+        width: min(380px, 100%);
+        background: white;
+        border-radius: var(--radius-card);
+        padding: 26px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
       }
 
       .lock-screen .back-link {
         display: inline-block;
         margin-top: 4px;
         font-size: 13px;
-        color: #2a6fdb;
+        color: var(--link-blue);
         text-decoration: none;
         cursor: pointer;
       }
@@ -350,33 +597,35 @@
 
       #clientPanel {
         position: fixed;
-        top: 20px;
+        top: 84px;
         right: 20px;
         width: 260px;
 
         background: white;
-        border-radius: 10px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        border-radius: 14px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 
         padding: 16px;
-        z-index: 999;
+        z-index: 900;
       }
 
       #clientPanel h3 {
         margin: 0 0 12px;
-        color: #333;
+        color: var(--text-dark);
+        font-size: 16px;
       }
 
       .client-card {
-        padding: 10px;
-        border-radius: 8px;
-        background: #f7f7f7;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: #f2f9ff;
         margin-bottom: 8px;
-        border-left: 4px solid #0078d4;
+        border-left: 4px solid var(--accent-blue);
       }
 
       .client-name {
-        font-weight: bold;
+        font-weight: 600;
+        color: var(--text-dark);
       }
 
       .client-ip {
@@ -388,47 +637,124 @@
         font-size: 12px;
         color: #888;
       }
+
+      /* =========================================
+         RESPONSIVE
+      ========================================= */
+
+      @media (max-width: 768px) {
+        .folder-manager {
+          padding: 84px 12px 30px;
+        }
+
+        .folder-box {
+          padding: 20px 18px 24px;
+          border-radius: 15px;
+        }
+
+        #Text_Logo {
+          font-size: 22px;
+          padding: 8px 16px;
+        }
+
+        #clientPanel {
+          position: static;
+          width: 100%;
+          max-width: 100%;
+          margin: 16px 0 0;
+        }
+
+        .file,
+        .folder {
+          width: 160px;
+        }
+
+        .thumb,
+        .icon-big,
+        .file button {
+          width: 132px;
+        }
+
+        .window {
+          width: 94%;
+          height: 88%;
+          padding: 16px 16px 18px;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .folder-box {
+          padding: 16px 14px 20px;
+          border-radius: 13px;
+        }
+
+        .file,
+        .folder {
+          width: 100%;
+          max-width: 220px;
+        }
+
+        .toolbar,
+        .new-folder-form {
+          gap: 8px;
+        }
+
+        .toolbar button,
+        .new-folder-form button {
+          font-size: 12px;
+          padding: 7px 12px;
+        }
+      }
     </style>
   </head>
 
   <body>
-    <h1>DigiSpot Files</h1>
-    <p id="greeting" style="display: none"></p>
+    <nav class="navbar">
+      <p id="Text_Logo">DigiSpot</p>
+    </nav>
 
-    <div id="breadcrumb"></div>
+    <main class="folder-manager">
+      <section class="folder-box">
+        <h1>DigiSpot Files</h1>
+        <p id="greeting" style="display: none"></p>
 
-    <div id="toolbar" class="toolbar" style="display: none">
-      <button onclick="showNewFolderForm()">+ New folder</button>
-      <button onclick="triggerUpload()">+ Upload files</button>
-      <input
-        type="file"
-        id="uploadInput"
-        multiple
-        style="display: none"
-        onchange="handleUploadInputChange(event)"
-      />
-    </div>
-    <div id="newFolderForm" class="new-folder-form" style="display: none">
-      <input
-        type="text"
-        id="newFolderInput"
-        placeholder="Folder name"
-        autocomplete="off"
-      />
-      <button onclick="submitNewFolder()">Create</button>
-      <button onclick="hideNewFolderForm()">Cancel</button>
-    </div>
+        <div id="breadcrumb"></div>
+
+        <div id="toolbar" class="toolbar" style="display: none">
+          <button onclick="showNewFolderForm()">+ New folder</button>
+          <button onclick="triggerUpload()">+ Upload files</button>
+          <input
+            type="file"
+            id="uploadInput"
+            multiple
+            style="display: none"
+            onchange="handleUploadInputChange(event)"
+          />
+        </div>
+        <div id="newFolderForm" class="new-folder-form" style="display: none">
+          <input
+            type="text"
+            id="newFolderInput"
+            placeholder="Folder name"
+            autocomplete="off"
+          />
+          <button onclick="submitNewFolder()">Create</button>
+          <button onclick="hideNewFolderForm()">Cancel</button>
+        </div>
+        <p id="uploadStatus" style="display: none"></p>
+
+        <p id="status">Loading files...</p>
+
+        <div id="files"></div>
+      </section>
+    </main>
+
     <div id="clientPanel" style="display: none">
       <h3>Connected Clients</h3>
       <div id="clientList">
         <p>No clients available.</p>
       </div>
     </div>
-    <p id="uploadStatus" style="display: none"></p>
-
-    <p id="status">Loading files...</p>
-
-    <div id="files"></div>
 
     <script>
       // Icon is now derived from the file extension rather than a stored
@@ -538,6 +864,9 @@
       // filled in from the server's response once we've loaded it —
       // used to label the root breadcrumb instead of a generic "Root".
       let rootFolderName = null;
+      let rootSegments = [];
+      const nestedPasscodes = {};
+      let pendingProtectedPath = null;
 
       // currentPath is always relative to the unlocked root folder, e.g.
       // [] for the root itself, or ["2024"] for a subfolder of it. This
@@ -576,9 +905,44 @@
         hideNewFolderForm();
       }
 
-      function navigateTo(name) {
+      function navigateTo(name, requiresPassword) {
         hideNewFolderForm();
+        if (requiresPassword) {
+          pendingProtectedPath = [...currentPath, name];
+          showNestedPasscodeModal(name);
+          return;
+        }
         currentPath.push(name);
+        loadFiles();
+      }
+
+      function showNestedPasscodeModal(folderName, wrong = false) {
+        document.getElementById("nestedPasscodeTitle").textContent = `Unlock ${folderName}`;
+        document.getElementById("nestedPasscodeError").textContent = wrong ? "Wrong passcode. Try again." : "";
+        document.getElementById("nestedPasscodeInput").value = "";
+        document.getElementById("nestedPasscodeModal").style.display = "flex";
+        document.getElementById("nestedPasscodeInput").focus();
+      }
+
+      function closeNestedPasscodeModal() {
+        document.getElementById("nestedPasscodeModal").style.display = "none";
+        pendingProtectedPath = null;
+      }
+
+      async function submitNestedPasscode() {
+        if (!pendingProtectedPath) return;
+        const value = document.getElementById("nestedPasscodeInput").value.trim();
+        const targetPath = pendingProtectedPath.slice();
+        const fullPath = [...rootSegments, ...targetPath].join("/");
+        const candidateCodes = { ...nestedPasscodes, [fullPath]: value };
+        const { response } = await fetchListing(targetPath, candidateCodes);
+        if (!response.ok) {
+          showNestedPasscodeModal(targetPath[targetPath.length - 1], true);
+          return;
+        }
+        nestedPasscodes[fullPath] = value;
+        closeNestedPasscodeModal();
+        currentPath = targetPath;
         loadFiles();
       }
 
@@ -604,9 +968,10 @@
       // Always sends `password` (so the server can re-resolve which
       // folder we're scoped to) plus `subpath` for how far we've
       // navigated into it — matching server.js's /api/files exactly.
-      async function fetchListing(subpathSegments) {
+      async function fetchListing(subpathSegments, passcodeMap = nestedPasscodes) {
         const params = new URLSearchParams();
         if (password) params.set("password", password);
+        if (Object.keys(passcodeMap).length) params.set("passcodes", JSON.stringify(passcodeMap));
         if (subpathSegments.length)
           params.set("subpath", subpathSegments.join("/"));
         const qs = params.toString();
@@ -662,7 +1027,10 @@
           .split("/")
           .filter(Boolean);
         const rootLen = fullSegments.length - currentPath.length;
-        if (rootLen > 0) rootFolderName = fullSegments[rootLen - 1];
+        if (rootLen > 0) {
+          rootFolderName = fullSegments[rootLen - 1];
+          rootSegments = fullSegments.slice(0, rootLen);
+        }
 
         if (status) status.style.display = "none";
         renderBreadcrumb();
@@ -732,7 +1100,7 @@
         folders.forEach((folder) => {
           const div = document.createElement("div");
           div.className = "folder";
-          div.onclick = () => navigateTo(folder.name);
+          div.onclick = () => navigateTo(folder.name, folder.passwordRequired);
           div.innerHTML = `
             <div class="icon">📁</div>
             <div class="name">${folder.name}</div>
@@ -846,6 +1214,7 @@
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
               password,
+              passcodes: nestedPasscodes,
               subpath: currentPath.join("/"),
               name,
               author: guestName,
@@ -893,6 +1262,7 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             password,
+            passcodes: nestedPasscodes,
             subpath: currentPath.join("/"),
             name: file.name,
             dataBase64,
@@ -980,6 +1350,18 @@
         loadFiles();
       }
     </script>
+
+    <div id="nestedPasscodeModal" class="passcode-modal" onclick="if(event.target===this) closeNestedPasscodeModal()">
+      <div class="lock-screen" role="dialog" aria-modal="true" aria-labelledby="nestedPasscodeTitle">
+        <div class="icon">🔒</div>
+        <h3 id="nestedPasscodeTitle">Unlock folder</h3>
+        <p>Enter this folder’s passcode to continue.</p>
+        <input id="nestedPasscodeInput" type="password" placeholder="Passcode" autocomplete="off" onkeydown="if(event.key==='Enter') submitNestedPasscode()" />
+        <div id="nestedPasscodeError" class="error"></div>
+        <button onclick="submitNestedPasscode()">Unlock</button>
+        <button type="button" onclick="closeNestedPasscodeModal()">Cancel</button>
+      </div>
+    </div>
 
     <div id="viewer" class="viewer">
       <div class="window">

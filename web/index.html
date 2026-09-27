@@ -1,66 +1,170 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Enter Your Name</title>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         margin: 0;
-        font-family: Arial, sans-serif;
-        background: #f4f4f4;
+        font-family:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        background-color: #c4f5ff;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+
+      /* =========================================
+         NAVIGATION BAR
+      ========================================= */
+
+      .navbar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 64px;
+        display: flex;
+        align-items: center;
+        background-color: #5dbbff;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        z-index: 1000;
+      }
+
+      #Text_Logo {
+        font-size: 28px;
+        color: white;
+        font-weight: 600;
+        margin: 0;
+        padding: 10px 24px;
+      }
+
+      /* =========================================
+         GATE CARD
+      ========================================= */
+
+      .gate-wrap {
+        flex: 1;
         display: flex;
         justify-content: center;
         align-items: center;
-        height: 100vh;
+        padding: 100px 20px 40px;
       }
 
       .container {
         background: white;
-        padding: 30px;
-        border-radius: 10px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        padding: 2rem 2.5rem;
+        border-radius: 20px;
+        box-shadow: 0 4px 4px 5px rgba(0, 0, 0, 0.25);
         text-align: center;
-        width: 300px;
+        width: 100%;
+        max-width: 340px;
       }
 
       h2 {
-        margin-top: 0;
+        margin: 0 0 1.2rem;
+        color: #333;
+        font-size: 1.4rem;
+        font-weight: bold;
       }
 
       input {
         width: 100%;
-        padding: 10px;
-        margin: 15px 0;
+        height: 44px;
+        padding: 0.9rem 1rem;
+        margin: 0 0 1rem;
         box-sizing: border-box;
-        font-size: 16px;
+        font-size: 0.95rem;
+        border: none;
+        border-radius: 10px;
+        background: #f6f6f6;
+        color: #333;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+      }
+
+      input::placeholder {
+        color: #999;
+      }
+
+      input:focus {
+        outline: none;
+        background: #ffffff;
+        box-shadow: 0 0 0 3px rgba(85, 184, 255, 0.35);
+      }
+
+      input:disabled {
+        background: #eee;
+        color: #999;
+        cursor: not-allowed;
+        box-shadow: none;
       }
 
       button {
         width: 100%;
-        padding: 10px;
-        font-size: 16px;
+        padding: 11px;
+        font-size: 15px;
+        font-weight: 600;
         cursor: pointer;
-        background: #0078d4;
+        background: #55b8ff;
         color: white;
         border: none;
-        border-radius: 5px;
+        border-radius: 10px;
       }
 
       button:hover {
-        background: #005ea6;
+        background: #3da8f3;
       }
+
+      @media (max-width: 480px) {
+        #Text_Logo {
+          font-size: 22px;
+          padding: 8px 16px;
+        }
+
+        .gate-wrap {
+          padding: 84px 16px 30px;
+        }
+
+        .container {
+          padding: 1.6rem 1.4rem;
+          border-radius: 16px;
+        }
+      }
+
     </style>
   </head>
 
   <body>
-    <div class="container">
-      <h2>Enter Your Name</h2>
+    <nav class="navbar">
+      <p id="Text_Logo">DigiSpot</p>
+    </nav>
 
-      <input type="text" id="name" placeholder="Your name" autocomplete="off" />
-      <input type="text" id="password" placeholder="spot code" />
-      <button onclick="goToFolder()">Submit</button>
+    <div class="gate-wrap">
+      <div class="container">
+        <img
+          src="logo.png"
+          alt="Logo"
+          style="width: 80px; margin-bottom: 1rem"
+        />
+        <h2>Enter Your Name</h2>
+
+        <input
+          type="text"
+          id="name"
+          placeholder="Your name"
+          autocomplete="off"
+        />
+        <input type="text" id="password" placeholder="spot code" />
+        <button onclick="goToFolder()">Submit</button>
+      </div>
     </div>
 
     <script>
@@ -78,9 +182,9 @@
       function goToFolder() {
         const name = document.getElementById("name").value.trim();
 
-        // Use the query password if present, otherwise use the input field
-        const password =
-          queryPassword !== null ? queryPassword : passwordInput.value.trim();
+        const password = queryPassword !== null
+          ? queryPassword
+          : passwordInput.value.trim();
 
         if (!name) {
           alert("Please enter your name.");
@@ -101,6 +205,7 @@
           goToFolder();
         }
       });
+
     </script>
   </body>
 </html>

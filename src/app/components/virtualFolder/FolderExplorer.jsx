@@ -392,14 +392,16 @@ export default function FolderExplorer() {
                   <Text style={styles.folderIcon}>
                     {getAccessibilityIcon([...currentPath, folder.name])}
                   </Text>
-                  <Text style={styles.folderName} numberOfLines={1}>
-                    {folder.name}
-                  </Text>
-                  {folder.author && (
-                    <Text style={styles.authorSub} numberOfLines={1}>
-                      by {folder.author}
+                  <View style={styles.folderInfo}>
+                    <Text style={styles.folderName} numberOfLines={1}>
+                      {folder.name}
                     </Text>
-                  )}
+                    {folder.author && (
+                      <Text style={styles.authorSub} numberOfLines={1}>
+                        by {folder.author}
+                      </Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               ))}
             </View>
@@ -458,13 +460,13 @@ export default function FolderExplorer() {
           <Text style={styles.actionButtonTextSecondary}>Settings</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.actionButtonFolder]}
           onPress={() => setNewFolderModalVisible(true)}
         >
           <Text style={styles.actionButtonText}>+ Folder</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={styles.actionButton}
+          style={[styles.actionButton, styles.actionButtonUpload]}
           onPress={handleImportFiles}
         >
           <Text style={styles.actionButtonText}>+ Files</Text>
@@ -708,24 +710,24 @@ function FolderQRModal({ visible, folderName, passcode, onClose }) {
 // Styles
 // -------------------------------------------------------------------------
 
-const ACCENT = "#3B6FE0";
+const ACCENT = "#55B8FF";
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#F7F8FA" },
-  scrollContent: { padding: 16, paddingBottom: 100 },
+  container: { width: "100%", maxWidth: 650, minHeight: 600, alignSelf: "center", backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: "#AAAAAA", borderRadius: 17, overflow: "hidden", elevation: 3 },
+  scrollContent: { padding: 18, paddingBottom: 100 },
 
   breadcrumbs: {
     flexDirection: "row",
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: "#FFFFFF",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "#E2E5EA",
+    backgroundColor: "#5DBBFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#AAAAAA",
   },
-  breadcrumbRoot: { fontSize: 14, fontWeight: "600", color: ACCENT },
+  breadcrumbRoot: { fontSize: 14, fontWeight: "700", color: "#FFFFFF" },
   breadcrumbItem: { flexDirection: "row", alignItems: "center" },
-  breadcrumbSep: { marginHorizontal: 6, color: "#9AA1AC" },
-  breadcrumbText: { fontSize: 14, fontWeight: "600", color: "#1E2230" },
+  breadcrumbSep: { marginHorizontal: 6, color: "rgba(255,255,255,0.75)" },
+  breadcrumbText: { fontSize: 14, fontWeight: "600", color: "#FFFFFF" },
 
   displayNamePill: {
     alignSelf: "flex-start",
@@ -734,37 +736,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: "#EEF1F6",
+    backgroundColor: "#F2F2F2",
   },
-  displayNamePillText: { fontSize: 11, color: "#5A6172", fontWeight: "600" },
+  displayNamePillText: { fontSize: 11, color: "#555555", fontWeight: "600" },
 
   authorSub: { fontSize: 10, color: "#9AA1AC", marginTop: 2 },
 
   sectionLabel: {
     fontSize: 12,
     fontWeight: "700",
-    color: "#8A93A3",
+    color: "#777777",
     textTransform: "uppercase",
     letterSpacing: 0.6,
     marginBottom: 8,
     marginTop: 12,
   },
 
-  folderGrid: { flexDirection: "row", flexWrap: "wrap", gap: 12 },
+  folderGrid: { flexDirection: "column" },
   folderCard: {
-    width: "31%",
+    width: "100%",
+    minHeight: 55,
+    flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
     alignItems: "center",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E2E5EA",
+    borderBottomWidth: 1,
+    borderBottomColor: "#AAAAAA",
   },
-  folderIcon: { fontSize: 28, marginBottom: 6 },
+  folderIcon: { fontSize: 28, marginRight: 15 },
+  folderInfo: { flex: 1, minWidth: 0 },
   folderName: {
-    fontSize: 13,
+    flex: 1,
+    fontSize: 16,
     fontWeight: "600",
-    color: "#1E2230",
+    color: "#333333",
     maxWidth: "90%",
   },
 
@@ -772,23 +778,24 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 8,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "#E2E5EA",
+    minHeight: 55,
+    borderRadius: 0,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#AAAAAA",
   },
   fileIcon: { fontSize: 22, marginRight: 12 },
   fileInfo: { flex: 1 },
-  fileName: { fontSize: 14, fontWeight: "600", color: "#1E2230" },
-  fileSub: { fontSize: 11, color: "#9AA1AC", marginTop: 2 },
+  fileName: { fontSize: 16, fontWeight: "600", color: "#333333" },
+  fileSub: { fontSize: 11, color: "#777777", marginTop: 2 },
 
   emptyState: { alignItems: "center", marginTop: 60 },
   emptyEmoji: { fontSize: 40, marginBottom: 8 },
-  emptyText: { fontSize: 15, fontWeight: "600", color: "#4B5563" },
+  emptyText: { fontSize: 15, fontWeight: "600", color: "#555555" },
   emptySubtext: {
     fontSize: 12,
-    color: "#9AA1AC",
+    color: "#777777",
     marginTop: 4,
     textAlign: "center",
   },
@@ -802,20 +809,22 @@ const styles = StyleSheet.create({
     padding: 16,
     gap: 10,
     backgroundColor: "#FFFFFF",
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: "#E2E5EA",
+    borderTopWidth: 1,
+    borderTopColor: "#888888",
   },
   actionButton: {
     flex: 1,
     backgroundColor: ACCENT,
-    borderRadius: 12,
-    paddingVertical: 13,
+    borderRadius: 8,
+    paddingVertical: 9,
     alignItems: "center",
   },
-  actionButtonSecondary: { backgroundColor: "#EEF1F6" },
-  actionButtonText: { color: "#FFFFFF", fontWeight: "700", fontSize: 14 },
+  actionButtonSecondary: { backgroundColor: "#EEEEEE" },
+  actionButtonFolder: { backgroundColor: "#FFF34F" },
+  actionButtonUpload: { backgroundColor: "#48FF3C" },
+  actionButtonText: { color: "#333333", fontWeight: "700", fontSize: 13 },
   actionButtonTextSecondary: {
-    color: "#3A4150",
+    color: "#333333",
     fontWeight: "700",
     fontSize: 14,
   },
@@ -823,25 +832,28 @@ const styles = StyleSheet.create({
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(15, 18, 25, 0.45)",
-    justifyContent: "flex-end",
+    justifyContent: "center",
+    padding: 15,
   },
   modalCard: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    width: "100%",
+    maxWidth: 420,
+    alignSelf: "center",
+    borderRadius: 27,
     padding: 20,
-    paddingBottom: 32,
+    paddingBottom: 24,
   },
   modalTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E2230",
+    color: "#333333",
     marginBottom: 12,
   },
   textInput: {
     borderWidth: 1,
-    borderColor: "#E2E5EA",
-    borderRadius: 10,
+    borderColor: "#AAAAAA",
+    borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
@@ -858,8 +870,8 @@ const styles = StyleSheet.create({
   },
   modalButtonSecondary: {
     flex: 1,
-    backgroundColor: "#EEF1F6",
-    borderRadius: 10,
+    backgroundColor: "#EEEEEE",
+    borderRadius: 8,
     paddingVertical: 12,
     alignItems: "center",
   },

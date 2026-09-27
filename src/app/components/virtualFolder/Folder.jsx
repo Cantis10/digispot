@@ -14,5 +14,5 @@ export default function Folder() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F7F8FA" },
+  safeArea: { width: "100%", minHeight: 600, backgroundColor: "#E0E0E0" },
 });

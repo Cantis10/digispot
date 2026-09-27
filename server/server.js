@@ -2,6 +2,7 @@ import { Asset } from "expo-asset";
 import { Directory, File, Paths } from "expo-file-system";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Network from "expo-network";
+import { Buffer } from "react-native-nitro-buffer";
 import { createConfigServer } from "react-native-nitro-http-server";
 import {
   ACCESSIBILITY,
@@ -11,9 +12,13 @@ import {
   getAllAuthors,
   setAuthor as persistSetAuthor,
 } from "../src/app/components/virtualFolder/Authorstore";
-import { findFolderByPasscode } from "../src/app/components/virtualFolder/Passcodestore";
+import {
+  findFolderByPasscode,
+  getFolderPasscode,
+} from "../src/app/components/virtualFolder/Passcodestore";
 
 let pages = {};
+let staticFiles = {};
 let serverInstance = null;
 const clients = new Map();
 
@@ -30,6 +35,37 @@ async function loadHTML() {
     await asset.downloadAsync();
     pages[path] = await FileSystem.readAsStringAsync(asset.localUri);
   }
+
+  const bundledStaticFiles = {
+    "/style.css": {
+      module: require("../web/style.css"),
+      contentType: "text/css; charset=utf-8",
+      encoding: FileSystem.EncodingType.UTF8,
+    },
+    "/logo.png": {
+      module: require("../web/logo.png"),
+      contentType: "image/png",
+      encoding: FileSystem.EncodingType.Base64,
+    },
+  };
+
+  for (const [path, config] of Object.entries(bundledStaticFiles)) {
+    const asset = Asset.fromModule(config.module);
+    await asset.downloadAsync();
+    const contents = await FileSystem.readAsStringAsync(asset.localUri, {
+      encoding: config.encoding,
+    });
+    staticFiles[path] = {
+      contentType: config.contentType,
+      body:
+        config.encoding === FileSystem.EncodingType.Base64
+          ? Buffer.from(contents, "base64")
+          : contents,
+    };
+  }
+  // Older pages refer to the logo in this location. Keep the URL working
+  // while the asset itself remains a single bundled file.
+  staticFiles["/Images/DigiSpot_Logo.png"] = staticFiles["/logo.png"];
 }
 
 async function ensureDigiSpotDir() {
@@ -81,9 +117,34 @@ function dirFromSegments(segments) {
   );
 }
 
-function downloadUrlFor(segments, name) {
+function downloadUrlFor(segments, name, password, passcodes = {}) {
   const parts = [...segments, name].map(encodeURIComponent);
-  return `/files/${parts.join("/")}`;
+  const params = new URLSearchParams();
+  if (password) params.set("password", password);
+  if (Object.keys(passcodes).length)
+    params.set("passcodes", JSON.stringify(passcodes));
+  const queryString = params.toString();
+  const query = queryString ? `?${queryString}` : "";
+  return `/files/${parts.join("/")}${query}`;
+}
+
+async function hasMatchingPasscode(segments, passcodes) {
+  const expected = await getFolderPasscode(segments);
+  return !!expected && passcodes?.[segments.join("/")] === expected;
+}
+
+async function canAccessSubpath(rootSegments, subSegments, passcodes) {
+  for (let i = 0; i < subSegments.length; i++) {
+    const segments = [...rootSegments, ...subSegments.slice(0, i + 1)];
+    const accessibility = await getFolderAccessibility(segments);
+    if (accessibility === ACCESSIBILITY.PRIVATE) return false;
+    if (
+      accessibility === ACCESSIBILITY.PROTECTED &&
+      !(await hasMatchingPasscode(segments, passcodes))
+    )
+      return false;
+  }
+  return true;
 }
 
 function parseCookies(header) {
@@ -196,7 +257,7 @@ function mimeTypeFor(name) {
 // supplied password unlocked that folder (or an ancestor of it). This is
 // what the old static "/files" mount skipped entirely — it served bytes
 // straight off disk before any of this ran.
-async function authorizeFileAccess(fileSegments, password) {
+async function authorizeFileAccess(fileSegments, password, passcodes = {}) {
   const folderSegments = fileSegments.slice(0, -1);
 
   let unlockedRoot = [];
@@ -216,12 +277,15 @@ async function authorizeFileAccess(fileSegments, password) {
     }
 
     if (accessibility === ACCESSIBILITY.PROTECTED) {
-      const isUnlocked =
+      const isRootPasscode =
         unlockedRoot.length > 0 &&
-        unlockedRoot.length <= ancestor.length &&
+        unlockedRoot.length === ancestor.length &&
         unlockedRoot.every((seg, idx) => seg === ancestor[idx]);
 
-      if (!isUnlocked) {
+      if (
+        !isRootPasscode &&
+        !(await hasMatchingPasscode(ancestor, passcodes))
+      ) {
         return {
           allowed: false,
           statusCode: 401,
@@ -381,6 +445,10 @@ async function handler(request) {
       const password = searchParams.get("password");
       const subpathRaw = searchParams.get("subpath");
       const sub = parsePathParam(subpathRaw);
+      let passcodes = {};
+      try {
+        passcodes = JSON.parse(searchParams.get("passcodes") || "{}");
+      } catch {}
 
       // Find the root folder (protected by password)
       let unlocked = [];
@@ -409,25 +477,24 @@ async function handler(request) {
         }
       }
 
-      // Check if navigating into a PROTECTED folder without password
+      // Every protected descendant requires its own passcode. The URL's
+      // passcode only unlocks the folder that established the page root.
       if (sub.length > 0) {
-        // If no password provided but navigating nested
-        if (!password) {
-          // Check if any part of the path is protected
-          for (let i = 0; i < sub.length; i++) {
-            const pathSegments = [...unlocked, ...sub.slice(0, i + 1)];
-            const needsPassword =
-              await checkFolderPasswordRequired(pathSegments);
-            if (needsPassword) {
-              return {
-                statusCode: 401,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  error: "Password required",
-                  requiresPassword: true,
-                }),
-              };
-            }
+        for (let i = 0; i < sub.length; i++) {
+          const pathSegments = [...unlocked, ...sub.slice(0, i + 1)];
+          const accessibility = await getFolderAccessibility(pathSegments);
+          if (
+            accessibility === ACCESSIBILITY.PROTECTED &&
+            !(await hasMatchingPasscode(pathSegments, passcodes))
+          ) {
+            return {
+              statusCode: 401,
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                error: "Password required",
+                requiresPassword: true,
+              }),
+            };
           }
         }
 
@@ -488,7 +555,7 @@ async function handler(request) {
           name: e.name,
           size: e.size,
           type: "File",
-          downloadUrl: downloadUrlFor(segments, e.name),
+          downloadUrl: downloadUrlFor(segments, e.name, password, passcodes),
           author: authorFor(e.name),
         }));
 
@@ -553,6 +620,17 @@ async function handler(request) {
       }
 
       const sub = parsePathParam(body.subpath ?? searchParams.get("subpath"));
+      const passcodes = body.passcodes || {};
+      if (!(await canAccessSubpath(unlocked, sub, passcodes))) {
+        return {
+          statusCode: 401,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            error: "Password required",
+            requiresPassword: true,
+          }),
+        };
+      }
       const parentSegments = [...unlocked, ...sub];
       const name = sanitizeName(body.name, "Untitled folder");
       const segments = [...parentSegments, name];
@@ -623,6 +701,17 @@ async function handler(request) {
       }
 
       const sub = parsePathParam(body.subpath ?? searchParams.get("subpath"));
+      const passcodes = body.passcodes || {};
+      if (!(await canAccessSubpath(unlocked, sub, passcodes))) {
+        return {
+          statusCode: 401,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            error: "Password required",
+            requiresPassword: true,
+          }),
+        };
+      }
       const parentSegments = [...unlocked, ...sub];
       const parentDir = dirFromSegments(parentSegments);
       if (!parentDir.exists) parentDir.create({ intermediates: true });
@@ -645,7 +734,12 @@ async function handler(request) {
           ok: true,
           name,
           author,
-          downloadUrl: downloadUrlFor(parentSegments, name),
+          downloadUrl: downloadUrlFor(
+            parentSegments,
+            name,
+            password,
+            passcodes,
+          ),
         }),
       };
     } catch (error) {
@@ -676,7 +770,11 @@ async function handler(request) {
       }
 
       const password = searchParams.get("password");
-      const auth = await authorizeFileAccess(fileSegments, password);
+      let passcodes = {};
+      try {
+        passcodes = JSON.parse(searchParams.get("passcodes") || "{}");
+      } catch {}
+      const auth = await authorizeFileAccess(fileSegments, password, passcodes);
       if (!auth.allowed) {
         return {
           statusCode: auth.statusCode,
@@ -724,6 +822,20 @@ async function handler(request) {
       statusCode: 200,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(Array.from(clients.values())),
+    };
+  }
+
+  // Public, bundled website assets. Keep this map explicit so a URL cannot
+  // read arbitrary files from the app or the user's document directory.
+  if (method === "GET" && staticFiles[reqPath]) {
+    const asset = staticFiles[reqPath];
+    return {
+      statusCode: 200,
+      headers: {
+        "Content-Type": asset.contentType,
+        "Cache-Control": "public, max-age=86400",
+      },
+      body: asset.body,
     };
   }
 
